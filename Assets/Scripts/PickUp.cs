@@ -1,9 +1,11 @@
 
 using UnityEngine;
+using TMPro;
 
 public class PickUp : MonoBehaviour
 {
-    // Start is called before the first frame update
+    private int CoinCounter = 0;
+    public TMP_Text coinText;
     void Start()
     {
 
@@ -16,9 +18,11 @@ public class PickUp : MonoBehaviour
     }
     void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.CompareTag("item"))
+        if (other.CompareTag("item"))
             {
-                Destroy(other.gameObject);
+            Destroy(other.gameObject);
+            CoinCounter++;
+            coinText.text = "Coins: " + CoinCounter.ToString();
             }
         }
 }
