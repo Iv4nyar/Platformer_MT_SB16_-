@@ -1,51 +1,58 @@
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-
 public class Enemy : MonoBehaviour
 {
+    public float speed = 2f;
+    public float jumpForce = 5f;
+    public LayerMask groundLayer;
     public Transform player;
-    public float chaseSpeed = 2f;
-    public float jumpForce = 2f;
-    public LayerMask Ground;
     private Rigidbody2D rb;
-    private bool isGrounded;
+    private bool isGroundedRight, isGroundedLeft;
+    private Vector2 leftRayOrigin, rightRayOrigin;
     private bool shouldJump;
-
+    private bool hasJumped = false;
     void Start()
     {
+        player = GameObject.FindGameObjectWithTag("Player").transform;
         rb = GetComponent<Rigidbody2D>();
     }
-
-    // Update is called once per frame
     void Update()
     {
-        isGrounded = Physics2D.Raycast(transform.position, Vector2.down, 1f, Ground);
+        leftRayOrigin = new Vector2(transform.position.x - 1.2f, transform.position.y);
+        rightRayOrigin = new Vector2(transform.position.x + 1f, transform.position.y);
+        isGroundedLeft = Physics2D.Raycast(leftRayOrigin, Vector2.down, 1.5f, groundLayer);
+        isGroundedRight = Physics2D.Raycast(rightRayOrigin, Vector2.down, 1.5f, groundLayer);
+        Debug.DrawRay(leftRayOrigin, Vector2.down * 1.5f, Color.red);
+        Debug.DrawRay(rightRayOrigin, Vector2.down * 1.5f, Color.red);
         float direction = Mathf.Sign(player.position.x - transform.position.x);
-        bool isPlayerAbove = Physics2D.Raycast(transform.position, Vector2.up, 3f, 1 << player.gameObject.layer);
-        if (isGrounded)
+        bool isPlayerAbove = Physics2D.Raycast(transform.position, Vector2.up, 5f, 1 << player.gameObject.layer);
+        if (isGroundedRight || isGroundedLeft)
         {
-            rb.velocity = new Vector2(direction * chaseSpeed, rb.velocity.y);
-            RaycastHit2D GroundInFront = Physics2D.Raycast(transform.position, new Vector2(direction, 0), 2f, Ground);
-            RaycastHit2D gapAhead = Physics2D.Raycast(transform.position + new Vector3(direction, 0, 0), Vector2.down, 2f, Ground);
-            RaycastHit2D platformAbove = Physics2D.Raycast(transform.position, Vector2.up, 3f, Ground);
-            if (!GroundInFront.collider && !gapAhead.collider)
+            hasJumped = false;
+            transform.localScale = (direction > 0) ? new Vector3(-1.5f, 1.5f, 1.5f) : new Vector3(1.5f, 1.5f, 1.5f);
+             rb.velocity = new Vector2(direction * speed, rb.velocity.y);
+            RaycastHit2D groundInFront = Physics2D.Raycast(transform.position, new Vector2(direction, 0), 2f, groundLayer);
+            RaycastHit2D gapAhead = Physics2D.Raycast(transform.position + new Vector3(direction, 0, 0), Vector2.down, 2f, groundLayer);
+            RaycastHit2D platformAbove = Physics2D.Raycast(transform.position, Vector2.up, 3f, groundLayer);
+            if (!groundInFront.collider && !gapAhead.collider)
             {
                 shouldJump = true;
             }
-            else if (isPlayerAbove && platformAbove.collider)
+            else if (platformAbove.collider && isPlayerAbove)
             {
                 shouldJump = true;
             }
         }
     }
-    private void FixedUpdate()
+    void FixedUpdate()
     {
-        shouldJump = false;
-        Vector2 direction = (player.position - transform.position).normalized;
-
-        Vector2 JumpDirection = direction * jumpForce;
-        rb.AddForce(new Vector2(JumpDirection.x, jumpForce), ForceMode2D.Impulse);
+        if ((isGroundedLeft || isGroundedRight) && shouldJump && !hasJumped)
+        {
+            shouldJump = false;
+            hasJumped = true;
+            Vector2 direction = (player.position - transform.position).normalized;
+            Vector2 jumpDirection = direction * jumpForce;
+            rb.AddForce(new Vector2(jumpDirection.x, jumpForce), ForceMode2D.Impulse);
+        }
     }
 }
