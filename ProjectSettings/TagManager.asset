@@ -8,6 +8,8 @@ TagManager:
   - Ground
   - Enemy
   - Ukraine
+  - Potion
+  - bbb
   layers:
   - Default
   - TransparentFX

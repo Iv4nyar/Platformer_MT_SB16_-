@@ -22,5 +22,34 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         }
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            if (rb.gravityScale >= 1)
+            {
+                rb.gravityScale = -1f;
+                jumpForce = -6f;
+            }
+            else
+            {
+                rb.gravityScale = 1;
+                jumpForce = 6f;
+            }
+        }
     }
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("bbb"))
+        {
+            jumpForce = 0f;
+
+        }
+    }
+        void OnTriggerExit2D(Collider2D other)
+        {
+        if (other.CompareTag("bbb"))
+            {
+            jumpForce = 7f;
+    
+            }
+        }
 }
